@@ -172,6 +172,7 @@ Deployments → จุดสามจุดที่ deployment ล่าสุ�
 | --- | --- |
 | หน้าเว็บโหลดได้แต่ไม่มีข้อมูล, console ขึ้น CORS | `FRONTEND_URL` ในฝั่ง API ไม่ตรงกับโดเมนจริง — แก้แล้ว **redeploy** |
 | ทุก API เป็น 404 | Root Directory ของโปรเจกต์ API ไม่ได้ตั้งเป็น `backend` |
+| ทุกหน้าเป็น `500 FUNCTION_INVOCATION_FAILED`, Runtime Logs ขึ้น `"Backend dependencies are not installed yet"` | Root Directory ของโปรเจกต์นี้ยังเป็นค่าว่าง/root ของ repo (ไม่ได้ตั้งเป็น `backend` หรือ `frontend`) — Vercel กำลังรัน `server.js` (ตัวรันสำหรับเครื่องตัวเองเท่านั้น) เป็น serverless function ซึ่งใช้งานแบบนั้นไม่ได้ — แก้ที่ Settings → General → Root Directory แล้ว redeploy (โปรเจกต์นี้ป้องกันไว้แล้วด้วย root `vercel.json` ที่จะทำให้ build ล้มเหลวทันทีพร้อมข้อความอธิบาย แทนที่จะ deploy "สำเร็จ" แล้วพังทุก request) |
 | รีเฟรชหน้าใน `/products` แล้ว 404 | `frontend/vercel.json` หาย — ไฟล์นี้ทำ SPA rewrite |
 | API ขึ้น `JWT_SECRET must be set...` | ยังไม่ได้ตั้ง `JWT_SECRET` (ตัวแอปกันไว้ไม่ให้ใช้ค่า dev ใน production) |
 | สั่งซื้อไม่ได้ ขึ้นว่าพบฟังก์ชันซ้ำซ้อน | ยังไม่ได้รัน `database/migrations/001_checkout_fix.sql` |

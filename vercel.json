@@ -1,0 +1,4 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "echo '\n\n❌ This Vercel project has no Root Directory set, so it is trying to deploy the repo root. This project is a monorepo: deploy backend/ and frontend/ as TWO SEPARATE Vercel projects instead. Fix: Project Settings -> General -> Root Directory -> set to \"backend\" or \"frontend\". See docs/DEPLOYMENT.md.\n\n' && exit 1"
+}

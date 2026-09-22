@@ -14,6 +14,22 @@ const path = require('path');
 const fs = require('fs');
 const concurrently = require('concurrently');
 
+// This launcher spawns long-running local dev servers — it can never work
+// as a Vercel serverless function (which must return a response, not stay
+// running). Reaching this means the project's Root Directory is unset /
+// pointed at the repo root instead of `backend` or `frontend`; the root
+// vercel.json is supposed to catch this at build time already (see
+// docs/DEPLOYMENT.md), so this is a second guard in case that's bypassed.
+if (process.env.VERCEL) {
+  console.error(
+    '\n❌ server.js (the local dev launcher) was invoked on Vercel. ' +
+      'Set this project\'s Root Directory to "backend" or "frontend" ' +
+      'in Settings -> General -- deploy those two folders as separate ' +
+      'Vercel projects, not the repo root. See docs/DEPLOYMENT.md.\n'
+  );
+  process.exit(1);
+}
+
 const root = __dirname;
 const backendDir = path.join(root, 'backend');
 const frontendDir = path.join(root, 'frontend');
