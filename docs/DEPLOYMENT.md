@@ -24,7 +24,7 @@ service role key ทันที แล้วอัปเดตค่าให�
 ```bash
 cd phanacea_pharmacist_business
 
-git init,5ff
+git init
 git branch -M main
 git add .
 git commit -m "PHANACEA: storefront + admin console + live support chat"
@@ -67,17 +67,25 @@ npm run create-admin -- --username admin --email admin@yourdomain.com --password
 
 ---
 
-## 3. Deploy Backend (API) บน Vercel
+## 3. Deploy บน Vercel — โปรเจกต์เดียว จบในหน้าเดียว
+
+ตั้งแต่คอมมิตนี้ root `vercel.json` + `api/index.js` ทำให้ **โปรเจกต์ Vercel เดียว**
+serve ได้ทั้งหน้าเว็บ (frontend, static) และ API (`/api/*`, serverless function)
+จากโดเมนเดียวกัน — ไม่ต้องแยก 2 โปรเจกต์ ไม่ต้องตั้งค่า CORS ข้ามโดเมน
 
 Vercel → **Add New → Project** → เลือก repo ที่เพิ่ง push
 
 | ตั้งค่า | ค่า |
 | --- | --- |
-| Project Name | `phanacea-api` |
-| **Root Directory** | `backend` ← **สำคัญมาก** |
+| Project Name | `phanacea` |
+| **Root Directory** | เว้นว่างไว้ (root ของ repo) ← **สำคัญมาก อย่าตั้งเป็น `backend` หรือ `frontend`** |
 | Framework Preset | Other |
 
-**Environment Variables** (Settings → Environment Variables):
+Build/Install/Output ถูกกำหนดไว้แล้วใน root `vercel.json` (ไม่ต้องแก้ใน UI):
+`installCommand` ติดตั้ง dependency ทั้ง backend และ frontend, `buildCommand`
+build เฉพาะ frontend, `outputDirectory` คือ `frontend/dist`
+
+**Environment Variables** (Settings → Environment Variables) — ใส่ให้ครบก่อน Deploy ครั้งแรก:
 
 ```
 NODE_ENV=production
@@ -87,6 +95,7 @@ JWT_SECRET=<สุ่มยาว ๆ ดูคำสั่งด้านล่
 JWT_EXPIRES_IN=7d
 CHECKOUT_STAFF_USERNAME=admin
 FRONTEND_URL=https://phanacea.vercel.app
+VITE_API_BASE_URL=/api
 ```
 
 สุ่ม `JWT_SECRET`:
@@ -95,68 +104,26 @@ FRONTEND_URL=https://phanacea.vercel.app
 node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 ```
 
-> `FRONTEND_URL` ยังไม่รู้ตอนนี้ก็ไม่เป็นไร — ใส่ค่าชั่วคราวไปก่อน แล้วกลับมาแก้
-> ในขั้นที่ 5 (ถ้าไม่ตรง เบราว์เซอร์จะบล็อกด้วย CORS)
+> `FRONTEND_URL` ตั้งเป็นโดเมนของโปรเจกต์นี้เอง (จะได้ค่าจริงหลัง Deploy ครั้งแรก
+> — ใส่ค่าประมาณไปก่อนได้ เช่น `https://phanacea.vercel.app`, ค่อยแก้ให้ตรงทีหลัง
+> แล้ว redeploy) `VITE_API_BASE_URL=/api` คือ path สัมพัทธ์ (relative) เพราะหน้าเว็บ
+> กับ API อยู่โดเมนเดียวกันแล้ว **ห้ามใส่ URL เต็มของ api.vercel.app แบบเดิม**
 
 กด **Deploy** แล้วทดสอบ:
 
 ```bash
-curl https://phanacea-api.vercel.app/api/health
+curl https://phanacea.vercel.app/api/health
 # {"success":true,"message":"PHANACEA API is running"}
 ```
 
----
-
-## 4. Deploy Frontend บน Vercel
-
-Vercel → **Add New → Project** → เลือก repo **เดิม** อีกครั้ง
-
-| ตั้งค่า | ค่า |
-| --- | --- |
-| Project Name | `phanacea` |
-| **Root Directory** | `frontend` ← **สำคัญมาก** |
-| Framework Preset | Vite (ตรวจพบอัตโนมัติ) |
-
-**Environment Variables:**
-
-```
-VITE_API_BASE_URL=https://phanacea-api.vercel.app/api
-```
-
-> ต้องลงท้ายด้วย `/api` และห้ามมี `/` ปิดท้าย
-
-กด **Deploy**
+เปิด `https://phanacea.vercel.app` ในเบราว์เซอร์ — ควรเห็นหน้าร้านเต็มรูปแบบ
+พร้อมใช้งานจริง (ไม่ใช่แค่ JSON ของ API)
 
 ---
 
-## 5. เชื่อมสองฝั่งเข้าหากัน (CORS)
+## 4. ตรวจสอบหลัง deploy
 
-กลับไปที่โปรเจกต์ **phanacea-api** → Environment Variables → แก้:
-
-```
-FRONTEND_URL=https://phanacea.vercel.app
-```
-
-ถ้าต้องการให้ preview deployment (ทุก pull request ได้โดเมนใหม่) ใช้งานได้ด้วย:
-
-```
-FRONTEND_PREVIEW_PATTERN=^https://phanacea-[a-z0-9-]+\.vercel\.app$
-```
-
-รองรับหลายโดเมนได้ด้วยการคั่นด้วยจุลภาค:
-
-```
-FRONTEND_URL=https://phanacea.vercel.app,https://www.phanacea.com
-```
-
-**แล้วต้อง Redeploy** — Vercel ไม่โหลด env ใหม่ให้เอง:
-Deployments → จุดสามจุดที่ deployment ล่าสุด → **Redeploy**
-
----
-
-## 6. ตรวจสอบหลัง deploy
-
-- [ ] `https://phanacea-api.vercel.app/api/health` ตอบ `success: true`
+- [ ] `https://phanacea.vercel.app/api/health` ตอบ `success: true`
 - [ ] เปิดหน้าร้าน เห็นรายการสินค้า
 - [ ] สมัครสมาชิก → ล็อกอิน → หยิบสินค้า → **สั่งซื้อสำเร็จ**
 - [ ] `/chat` ส่งข้อความได้
@@ -170,13 +137,25 @@ Deployments → จุดสามจุดที่ deployment ล่าสุ�
 
 | อาการ | สาเหตุ / วิธีแก้ |
 | --- | --- |
-| หน้าเว็บโหลดได้แต่ไม่มีข้อมูล, console ขึ้น CORS | `FRONTEND_URL` ในฝั่ง API ไม่ตรงกับโดเมนจริง — แก้แล้ว **redeploy** |
-| ทุก API เป็น 404 | Root Directory ของโปรเจกต์ API ไม่ได้ตั้งเป็น `backend` |
-| ทุกหน้าเป็น `500 FUNCTION_INVOCATION_FAILED`, Runtime Logs ขึ้น `"Backend dependencies are not installed yet"` | Root Directory ของโปรเจกต์นี้ยังเป็นค่าว่าง/root ของ repo (ไม่ได้ตั้งเป็น `backend` หรือ `frontend`) — Vercel กำลังรัน `server.js` (ตัวรันสำหรับเครื่องตัวเองเท่านั้น) เป็น serverless function ซึ่งใช้งานแบบนั้นไม่ได้ — แก้ที่ Settings → General → Root Directory แล้ว redeploy (โปรเจกต์นี้ป้องกันไว้แล้วด้วย root `vercel.json` ที่จะทำให้ build ล้มเหลวทันทีพร้อมข้อความอธิบาย แทนที่จะ deploy "สำเร็จ" แล้วพังทุก request) |
-| รีเฟรชหน้าใน `/products` แล้ว 404 | `frontend/vercel.json` หาย — ไฟล์นี้ทำ SPA rewrite |
+| หน้าเว็บโหลดได้แต่ไม่มีข้อมูล, console ขึ้น CORS | `FRONTEND_URL` ไม่ตรงกับโดเมนจริงของโปรเจกต์ หรือ `VITE_API_BASE_URL` ยังชี้ไปโดเมนอื่น — แก้แล้ว **redeploy** |
+| ทุก API เป็น 404 | Root Directory ถูกตั้งเป็น `backend` หรือ `frontend` (ของโปรเจกต์เดี่ยวนี้ต้องเว้นว่างไว้ที่ root) |
+| ทุกหน้าเป็น `500 FUNCTION_INVOCATION_FAILED` | ดู Runtime Logs — ถ้าขึ้น error จาก `backend/src/app.js` ตรง ๆ ให้เช็ค env vars (`SUPABASE_URL`, `JWT_SECRET` ฯลฯ) ว่าตั้งครบหรือยัง |
+| Deploy ล้มเหลวตั้งแต่ build, log ขึ้น "set Root Directory to backend or frontend" | เป็น vercel.json เก่าจากตอนแยก 2 โปรเจกต์ — ดึงโค้ดล่าสุดแล้ว deploy ใหม่ (root `vercel.json` ตอนนี้ build ได้จริงแล้ว ไม่ได้ตั้งใจให้ fail อีกต่อไป) |
+| รีเฟรชหน้าใน `/products` แล้ว 404 | root `vercel.json` หาย หรือ rewrite ถูกแก้ — ต้องมี `{ "source": "/(.*)", "destination": "/index.html" }` เป็นกฎสุดท้าย |
 | API ขึ้น `JWT_SECRET must be set...` | ยังไม่ได้ตั้ง `JWT_SECRET` (ตัวแอปกันไว้ไม่ให้ใช้ค่า dev ใน production) |
 | สั่งซื้อไม่ได้ ขึ้นว่าพบฟังก์ชันซ้ำซ้อน | ยังไม่ได้รัน `database/migrations/001_checkout_fix.sql` |
 | ล็อกอิน admin ไม่ได้ | รัน `npm run create-admin` อีกครั้งเพื่อตั้งรหัสผ่านใหม่ |
+
+---
+
+## แนวทางอื่น: แยก backend / frontend เป็น 2 โปรเจกต์
+
+`backend/vercel.json` และ `frontend/vercel.json` ยังอยู่ในโปรเจกต์ — ถ้าอยาก scale
+สองฝั่งแยกกัน (เช่น backend ไปแอตแทช domain อื่น หรือ deploy คนละความถี่) ยังตั้ง
+Root Directory เป็น `backend` กับ `frontend` แยกโปรเจกต์กันได้เหมือนเดิม แค่ต้องตั้ง
+`FRONTEND_URL` (ฝั่ง backend) กับ `VITE_API_BASE_URL` (ฝั่ง frontend, ใส่ URL เต็ม
+ของโปรเจกต์ backend ลงท้ายด้วย `/api`) ให้ชี้หากันเองข้ามโดเมน — สำหรับส่วนใหญ่
+วิธีโปรเจกต์เดียวด้านบนง่ายกว่าและไม่มีเรื่อง CORS ให้ปวดหัว
 
 ---
 

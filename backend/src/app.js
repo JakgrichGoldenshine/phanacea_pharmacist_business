@@ -29,6 +29,14 @@ app.use(express.json({ limit: '1mb' }));
 app.use(morgan(env.isProduction ? 'combined' : 'dev'));
 app.use(apiLimiter);
 
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Phanacea Pharmacist Business API is running',
+    version: '1.0.0',
+  });
+});
+
 app.use('/api', routes);
 
 app.use(notFound);
