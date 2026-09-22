@@ -1,0 +1,36 @@
+# Minimal CI: proves the backend still parses and the frontend still
+# builds on every push. It deliberately needs no secrets — nothing here
+# talks to Supabase — so it runs on forks and pull requests too.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Syntax-check backend sources
+        working-directory: backend
+        run: node --check server.js && find src scripts api -name '*.js' -exec node --check {} +
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build

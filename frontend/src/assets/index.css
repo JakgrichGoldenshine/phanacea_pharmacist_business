@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-space text-ink antialiased;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display;
+  }
+  :focus-visible {
+    outline: 2px solid theme('colors.cyan');
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: rgba(79, 157, 130, 0.18);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Plain, calm white card — the base surface used across the storefront */
+  .card {
+    @apply relative rounded-2xl border border-line bg-panel shadow-glow transition-shadow duration-300;
+  }
+  .card:hover {
+    @apply shadow-glowHover;
+  }
+
+  /* A quiet static accent strip along the top edge of a panel — no motion,
+     no glow, just a soft gradient hint of the brand color. */
+  .hud-edge {
+    @apply pointer-events-none absolute inset-x-0 top-0 h-1 rounded-t-2xl;
+    background: linear-gradient(90deg, theme('colors.cyan/45%'), theme('colors.cyanSoft/20%'), transparent);
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-cyan to-blue px-6 py-3
+           font-display font-semibold text-void shadow-glowBtn transition-transform duration-200
+           hover:scale-[1.02] hover:shadow-glowHover active:scale-95;
+  }
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-line bg-white px-6 py-3
+           font-display font-semibold text-ink transition-colors duration-200
+           hover:border-cyan/60 hover:bg-cyan/5;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-display font-semibold text-subtle
+           transition-colors duration-200 hover:bg-panelLight hover:text-ink;
+  }
+
+  .field {
+    @apply w-full rounded-xl border border-line bg-white px-4 py-3 text-ink placeholder:text-faint
+           outline-none transition focus:border-cyan/60 focus:ring-2 focus:ring-cyan/10;
+  }
+
+  .icon-chip {
+    @apply relative grid h-12 w-12 place-items-center rounded-2xl border border-cyanSoft/40 bg-cyan/10 text-cyan;
+  }
+
+  /* Kept as a semantic hook for emphasis text — no glow, just brand color. */
+  .glow-text {
+    color: theme('colors.cyan');
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium;
+  }
+}
